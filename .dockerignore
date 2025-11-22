@@ -1,0 +1,45 @@
+# Python 캐시 파일
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 가상 환경
+venv/
+env/
+ENV/
+.venv
+
+# IDE 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# 테스트 및 문서
+tests/
+test/
+docs/
+*.md
+!README.md
+
+# 로그 및 임시 파일
+*.log
+tmp/
+temp/
+/tmp/
+
+# 개발 전용 파일
+.env
+.env.local
+docker-compose.yml
+deploy.sh
