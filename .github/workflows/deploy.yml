@@ -3,6 +3,12 @@ name: Deploy to ECR
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'main.py'
+      - 'Dockerfile'
+      - 'requirements.txt'
+      - 'best.pt'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 env:
