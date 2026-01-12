@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from ultralytics import YOLO
 import uvicorn
 import numpy as np
@@ -8,6 +9,15 @@ import os
 import uuid
 
 app = FastAPI()
+
+# CORS 설정 (백엔드에서 호출 가능하도록)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 프로덕션에서는 특정 도메인으로 제한
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Lambda 환경과 로컬 환경 모두 지원
 MODEL_PATH = os.environ.get("MODEL_PATH", "best.pt")
@@ -23,6 +33,34 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 def resize_mask(mask, W, H):
     mask_uint8 = (mask * 255).astype(np.uint8)
     return cv2.resize(mask_uint8, (W, H), interpolation=cv2.INTER_NEAREST)
+
+@app.get("/")
+async def root():
+    """루트 엔드포인트 - 기본 health check"""
+    return {"message": "Welcome to FairStay AI", "status": "ok"}
+
+@app.get("/health")
+async def health():
+    """백엔드에서 호출하는 health check 엔드포인트"""
+    try:
+        # 모델이 로드되어 있는지 확인
+        if model is None:
+            return JSONResponse(
+                status_code=503,
+                content={"status": "unhealthy", "message": "Model not loaded"}
+            )
+        
+        return {
+            "status": "healthy",
+            "model_loaded": True,
+            "model_path": MODEL_PATH,
+            "save_dir": SAVE_DIR
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "message": str(e)}
+        )
 
 @app.post("/detect-crack")
 async def detect_crack(image: UploadFile = File(...)):
