@@ -1,0 +1,94 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 782B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.10-slim
+#2 ...
+
+#3 [auth] library/python:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.10-slim
+#2 DONE 1.9s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 424B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 93B done
+#5 DONE 0.0s
+
+#6 [1/7] FROM docker.io/library/python:3.10-slim@sha256:7b68a5fa7cf0d20b4cedb1dc9a134fdd394fe27edbc4c2519756c91d21df2313
+#6 resolve docker.io/library/python:3.10-slim@sha256:7b68a5fa7cf0d20b4cedb1dc9a134fdd394fe27edbc4c2519756c91d21df2313 0.0s done
+#6 DONE 0.0s
+
+#7 [2/7] WORKDIR /app
+#7 CACHED
+
+#8 [3/7] RUN apt-get update && apt-get install -y     libgl1     libglib2.0-0     libsm6     libxrender1     libxext6     && apt-get clean     && rm -rf /var/lib/apt/lists/*
+#8 CACHED
+
+#9 [4/7] COPY requirements.txt .
+#9 CACHED
+
+#10 [5/7] RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
+#10 1.942 Collecting fastapi
+#10 1.991   Downloading fastapi-0.128.0-py3-none-any.whl (103 kB)
+#10 2.008      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 103.1/103.1 kB 8.5 MB/s eta 0:00:00
+#10 2.060 Collecting uvicorn[standard]
+#10 2.070   Downloading uvicorn-0.40.0-py3-none-any.whl (68 kB)
+#10 2.080      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.5/68.5 kB 7.2 MB/s eta 0:00:00
+#10 2.344 Collecting ultralytics
+#10 2.362   Downloading ultralytics-8.3.252-py3-none-any.whl (1.2 MB)
+#10 2.556      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 6.0 MB/s eta 0:00:00
+#10 2.718 Collecting opencv-python-headless
+#10 2.729   Downloading opencv_python_headless-4.12.0.88-cp37-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (54.0 MB)
+#10 11.81      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 54.0/54.0 MB 6.0 MB/s eta 0:00:00
+#10 12.62 Collecting numpy
+#10 12.63   Downloading numpy-2.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.8 MB)
+#10 15.45      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.8/16.8 MB 6.0 MB/s eta 0:00:00
+#10 15.55 Collecting python-multipart
+#10 15.55   Downloading python_multipart-0.0.21-py3-none-any.whl (24 kB)
+#10 15.61 Collecting typing-extensions>=4.8.0
+#10 15.62   Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+#10 15.62      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.6/44.6 kB 11.7 MB/s eta 0:00:00
+#10 15.68 Collecting starlette<0.51.0,>=0.40.0
+#10 15.69   Downloading starlette-0.50.0-py3-none-any.whl (74 kB)
+#10 15.70      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 74.0/74.0 kB 7.2 MB/s eta 0:00:00
+#10 15.72 Collecting annotated-doc>=0.0.2
+#10 15.73   Downloading annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+#10 16.04 Collecting pydantic>=2.7.0
+#10 16.06   Downloading pydantic-2.12.5-py3-none-any.whl (463 kB)
+#10 16.14      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 463.6/463.6 kB 6.2 MB/s eta 0:00:00
+#10 16.18 Collecting h11>=0.8
+#10 16.18   Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#10 16.22 Collecting click>=7.0
+#10 16.23   Downloading click-8.3.1-py3-none-any.whl (108 kB)
+#10 16.25      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 108.3/108.3 kB 6.7 MB/s eta 0:00:00
+#10 16.47 Collecting watchfiles>=0.13
+#10 16.48   Downloading watchfiles-1.1.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (455 kB)
+#10 16.56      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 455.6/455.6 kB 6.2 MB/s eta 0:00:00
+#10 16.67 Collecting uvloop>=0.15.1
+#10 16.68   Downloading uvloop-0.22.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (3.7 MB)
+#10 17.30      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.7/3.7 MB 5.9 MB/s eta 0:00:00
+#10 17.41 Collecting pyyaml>=5.1
+#10 17.42   Downloading pyyaml-6.0.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (770 kB)
+#10 17.55      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 770.3/770.3 kB 6.0 MB/s eta 0:00:00
+#10 17.63 Collecting httptools>=0.6.3
+#10 17.63   Downloading httptools-0.7.1-cp310-cp310-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (440 kB)
+#10 17.71      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 440.9/440.9 kB 6.1 MB/s eta 0:00:00
+#10 17.74 Collecting python-dotenv>=0.13
+#10 17.75   Downloading python_dotenv-1.2.1-py3-none-any.whl (21 kB)
+#10 18.02 Collecting websockets>=10.4
+#10 18.03   Downloading websockets-16.0-cp310-cp310-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (183 kB)
+#10 18.06      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 183.8/183.8 kB 6.0 MB/s eta 0:00:00
+#10 18.12 Collecting ultralytics-thop>=2.0.18
+#10 18.13   Downloading ultralytics_thop-2.0.18-py3-none-any.whl (28 kB)
+#10 18.18 Collecting requests>=2.23.0
+#10 18.19   Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+#10 18.20      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.7/64.7 kB 7.0 MB/s eta 0:00:00
+#10 18.33 Collecting torch>=1.8.0
+#10 18.34   Downloading torch-2.9.1-cp310-cp310-manylinux_2_28_x86_64.whl (899.8 MB)

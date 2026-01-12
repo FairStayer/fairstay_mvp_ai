@@ -1,28 +1,32 @@
-# AWS Lambda Python 3.10 기본 이미지 사용
-FROM public.ecr.aws/lambda/python:3.10
+# Python 3.10 기본 이미지 사용
+FROM python:3.10-slim
 
 # 작업 디렉토리 설정
-WORKDIR ${LAMBDA_TASK_ROOT}
+WORKDIR /app
 
 # 시스템 의존성 설치 (OpenCV용)
-RUN yum install -y \
-    libGL \
+RUN apt-get update && apt-get install -y \
+    libgl1 \
     libglib2.0-0 \
-    libSM \
-    libXrender \
-    libXext \
-    && yum clean all
+    libsm6 \
+    libxrender1 \
+    libxext6 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # requirements.txt 복사 및 의존성 설치
+# pip 타임아웃 설정 및 PyPI 미러 사용
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # 애플리케이션 코드 복사
 COPY main.py .
-COPY lambda_handler.py .
 
-# AI 모델 파일 복사 (best.pt가 프로젝트에 있는 경우)
-# COPY best.pt .
+# AI 모델 파일 복사
+COPY best.pt .
 
-# Lambda 핸들러 설정
-CMD ["lambda_handler.handler"]
+# 포트 노출
+EXPOSE 8000
+
+# FastAPI 실행 (Uvicorn 사용)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,2 +1,5 @@
-AI_DEPLOYMENT_QUICK_GUIDE.md
-MANUAL_DEPLOYMENT_GUIDE.md
+ZIP_DEPLOYMENT_GUIDE.md
+S3_LAYER_DEPLOYMENT_GUIDE.md
+
+deploy-*
+# best.pt - 이제 GitHub에 올림 (GitHub Actions 빌드용)
