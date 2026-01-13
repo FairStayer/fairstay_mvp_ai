@@ -93,7 +93,7 @@ async def health():
         )
 
 @app.post("/detect-crack")
-async def detect_crack(file: UploadFile = File(...), image: UploadFile = File(None)):
+async def detect_crack(file: UploadFile = File(None), image: UploadFile = File(None)):
     """
     백엔드 호환성: 'file' 또는 'image' 필드명 모두 지원
     """
@@ -101,7 +101,7 @@ async def detect_crack(file: UploadFile = File(...), image: UploadFile = File(No
     request_id = str(uuid.uuid4())[:8]
     logger.info(f"[POST /detect-crack] Request {request_id} started at {datetime.now().isoformat()}")
     
-    upload_file = file if file else image
+    upload_file = file or image
     if not upload_file:
         logger.error(f"[POST /detect-crack] Request {request_id} - No image file provided")
         return JSONResponse(
@@ -131,7 +131,7 @@ async def detect_crack(file: UploadFile = File(...), image: UploadFile = File(No
     # YOLO 모델 실행
     inference_start = time.time()
     logger.info(f"[POST /detect-crack] Request {request_id} - Starting YOLO inference...")
-    results = model(img)
+    results = model(img, save=False, verbose=False)
     inference_time = time.time() - inference_start
     logger.info(f"[POST /detect-crack] Request {request_id} - YOLO inference completed in {inference_time:.3f}s")
 
