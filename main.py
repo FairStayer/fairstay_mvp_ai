@@ -63,22 +63,50 @@ async def health():
         )
 
 @app.post("/detect-crack")
-async def detect_crack(image: UploadFile = File(...)):
-    contents = await image.read()
+async def detect_crack(file: UploadFile = File(...), image: UploadFile = File(None)):
+    """
+    백엔드 호환성: 'file' 또는 'image' 필드명 모두 지원
+    """
+    upload_file = file if file else image
+    if not upload_file:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "No image file provided"}
+        )
+    
+    contents = await upload_file.read()
     nparr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
+    if img is None:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid image file"}
+        )
+
     H, W = img.shape[:2]
     results = model(img)
+
+    has_crack = False
+    max_confidence = 0.0
+    bounding_boxes = []
 
     for r in results:
         if r.masks is None:
             continue
 
         masks = r.masks.data.cpu().numpy()
-        N, h, w = masks.shape
+        boxes = r.boxes
+        
+        if boxes is not None:
+            confidences = boxes.conf.cpu().numpy()
+        else:
+            confidences = [0.0] * len(masks)
 
-        for i, mask in enumerate(masks):
+        for i, (mask, conf) in enumerate(zip(masks, confidences)):
+            has_crack = True
+            max_confidence = max(max_confidence, float(conf))
+            
             mask_resized = resize_mask(mask, W, H)
             mask_bool = mask_resized > 127
 
@@ -86,13 +114,20 @@ async def detect_crack(image: UploadFile = File(...)):
             if len(xs) == 0:
                 continue
 
-            x_min, x_max = xs.min(), xs.max()
-            y_min, y_max = ys.min(), ys.max()
+            x_min, x_max = int(xs.min()), int(xs.max())
+            y_min, y_max = int(ys.min()), int(ys.max())
+
+            bounding_boxes.append({
+                "x": x_min,
+                "y": y_min,
+                "width": x_max - x_min,
+                "height": y_max - y_min
+            })
 
             cv2.rectangle(img, (x_min, y_min), (x_max, y_max), (0, 0, 255), 3)
             cv2.putText(
                 img,
-                f"crack {i+1}",
+                f"crack {i+1} ({conf:.2f})",
                 (x_min, y_min - 10),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
@@ -104,7 +139,15 @@ async def detect_crack(image: UploadFile = File(...)):
     out_path = f"{SAVE_DIR}/{file_id}.jpg"
     cv2.imwrite(out_path, img)
 
-    return {"image_url": f"/result/{file_id}"}
+    # 백엔드 호환 응답 형식
+    return {
+        "file_id": file_id,
+        "image_url": f"/result/{file_id}",
+        "has_crack": has_crack,
+        "confidence": max_confidence,
+        "crack_count": len(bounding_boxes),
+        "bounding_boxes": bounding_boxes
+    }
 
 @app.get("/result/{file_id}")
 async def get_result(file_id: str):
