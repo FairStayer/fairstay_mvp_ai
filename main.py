@@ -4,11 +4,11 @@ import os
 os.environ["YOLO_VERBOSE"] = "False"
 os.environ["YOLO_CONFIG_DIR"] = "/tmp/Ultralytics"
 os.environ["ULTRALYTICS_RUNS_DIR"] = "/tmp/runs"
+os.environ["ULTRALYTICS_CACHE_DIR"] = "/tmp/Ultralytics"
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from ultralytics import YOLO
 import uvicorn
 import numpy as np
 import cv2
@@ -48,6 +48,12 @@ logger.info(f"SAVE_DIR: {SAVE_DIR}")
 if not os.path.exists(MODEL_PATH):
     logger.warning(f"Model not found at {MODEL_PATH}, trying current directory")
     MODEL_PATH = "best.pt"  # 현재 디렉토리에서 찾기
+
+from ultralytics import YOLO
+
+# 🔥 YOLO가 사용할 디렉토리 명시적으로 생성
+os.makedirs("/tmp/runs", exist_ok=True)
+os.makedirs("/tmp/Ultralytics", exist_ok=True)
 
 logger.info("Loading YOLO model...")
 model_load_start = time.time()
@@ -137,7 +143,17 @@ async def detect_crack(file: UploadFile = File(None), image: UploadFile = File(N
     # YOLO 모델 실행
     inference_start = time.time()
     logger.info(f"[POST /detect-crack] Request {request_id} - Starting YOLO inference...")
-    results = model(img, save=False, verbose=False)
+    
+    # Lambda read-only FS 대응: project와 name을 /tmp로 명시적 지정
+    results = model(
+        img, 
+        save=False, 
+        verbose=False,
+        project="/tmp/runs",
+        name="predict",
+        exist_ok=True
+    )
+    
     inference_time = time.time() - inference_start
     logger.info(f"[POST /detect-crack] Request {request_id} - YOLO inference completed in {inference_time:.3f}s")
 
