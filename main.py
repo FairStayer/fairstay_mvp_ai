@@ -1,3 +1,10 @@
+import os
+
+# 🔥 반드시 YOLO import 전에 설정 (Lambda read-only FS 대응)
+os.environ["YOLO_VERBOSE"] = "False"
+os.environ["YOLO_CONFIG_DIR"] = "/tmp/Ultralytics"
+os.environ["ULTRALYTICS_RUNS_DIR"] = "/tmp/runs"
+
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,7 +12,6 @@ from ultralytics import YOLO
 import uvicorn
 import numpy as np
 import cv2
-import os
 import uuid
 import logging
 import time
