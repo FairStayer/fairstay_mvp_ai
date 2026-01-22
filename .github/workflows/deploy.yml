@@ -1,4 +1,4 @@
-name: Deploy to ECR
+name: Deploy to ECR and Lambda
 
 on:
   push:
@@ -14,6 +14,7 @@ on:
 env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: fairstay-mvp-ai
+  LAMBDA_FUNCTION_NAME: fairstay-mvp-ai
 
 jobs:
   deploy:
@@ -38,6 +39,7 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
     
     - name: Build, tag, and push image to Amazon ECR
+      id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: latest
@@ -45,13 +47,29 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "Image pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        echo "image-uri=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+    
+    - name: Update Lambda function
+      env:
+        IMAGE_URI: ${{ steps.build-image.outputs.image-uri }}
+      run: |
+        echo "Updating Lambda function: ${{ env.LAMBDA_FUNCTION_NAME }}"
+        aws lambda update-function-code \
+          --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
+          --image-uri $IMAGE_URI
+        
+        echo "Waiting for Lambda function update to complete..."
+        aws lambda wait function-updated \
+          --function-name ${{ env.LAMBDA_FUNCTION_NAME }}
+        
+        echo "✅ Lambda function updated successfully!"
     
     - name: Deploy Summary
       run: |
         echo "✅ Deployment completed successfully!"
-        echo "🐳 Image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest"
+        echo "🐳 Image: ${{ steps.build-image.outputs.image-uri }}"
+        echo "⚡ Lambda Function: ${{ env.LAMBDA_FUNCTION_NAME }}"
         echo ""
-        echo "📋 Next steps:"
-        echo "1. Go to AWS ECS Console"
-        echo "2. Update your ECS Service to use the new image"
-        echo "3. Or create a new ECS Task Definition with this image"
+        echo "📋 Deployment includes:"
+        echo "1. ✅ Docker image built and pushed to ECR"
+        echo "2. ✅ Lambda function updated with new image"
