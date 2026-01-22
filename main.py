@@ -54,14 +54,23 @@ from ultralytics import YOLO
 # 🔥 YOLO가 사용할 디렉토리 명시적으로 생성
 os.makedirs("/tmp/runs", exist_ok=True)
 os.makedirs("/tmp/Ultralytics", exist_ok=True)
-
-logger.info("Loading YOLO model...")
-model_load_start = time.time()
-model = YOLO(MODEL_PATH)
-model_load_time = time.time() - model_load_start
-logger.info(f"YOLO model loaded successfully in {model_load_time:.2f} seconds")
-
 os.makedirs(SAVE_DIR, exist_ok=True)
+
+# 🔥 Lazy Loading: 모델을 전역 변수로 선언만 하고, 첫 요청 시 로딩
+model = None
+
+def load_model():
+    """모델을 지연 로딩하는 함수 (첫 요청 시에만 실행)"""
+    global model
+    if model is None:
+        logger.info("Loading YOLO model (lazy loading)...")
+        model_load_start = time.time()
+        model = YOLO(MODEL_PATH)
+        model_load_time = time.time() - model_load_start
+        logger.info(f"YOLO model loaded successfully in {model_load_time:.2f} seconds")
+    return model
+
+logger.info(f"FastAPI initialized - Model will be loaded on first request")
 logger.info(f"Save directory created/verified: {SAVE_DIR}")
 
 def resize_mask(mask, W, H):
@@ -81,21 +90,17 @@ async def health():
     """백엔드에서 호출하는 health check 엔드포인트"""
     logger.info("[GET /health] Health check requested")
     try:
-        # 모델이 로드되어 있는지 확인
-        if model is None:
-            logger.error("[GET /health] Model is not loaded")
-            return JSONResponse(
-                status_code=503,
-                content={"status": "unhealthy", "message": "Model not loaded"}
-            )
+        # 모델 로딩 상태 확인 (lazy loading이므로 None일 수 있음)
+        model_loaded = model is not None
         
         response = {
             "status": "healthy",
-            "model_loaded": True,
+            "model_loaded": model_loaded,
             "model_path": MODEL_PATH,
-            "save_dir": SAVE_DIR
+            "save_dir": SAVE_DIR,
+            "note": "Model will be loaded on first inference request" if not model_loaded else None
         }
-        logger.info(f"[GET /health] Status: healthy, model_loaded=True")
+        logger.info(f"[GET /health] Status: healthy, model_loaded={model_loaded}")
         return response
     except Exception as e:
         logger.error(f"[GET /health] Exception: {str(e)}", exc_info=True)
@@ -112,6 +117,9 @@ async def detect_crack(file: UploadFile = File(None), image: UploadFile = File(N
     request_start = time.time()
     request_id = str(uuid.uuid4())[:8]
     logger.info(f"[POST /detect-crack] Request {request_id} started at {datetime.now().isoformat()}")
+    
+    # 🔥 첫 요청 시 모델 로딩 (Lazy Loading)
+    current_model = load_model()
     
     upload_file = file or image
     if not upload_file:
@@ -145,7 +153,7 @@ async def detect_crack(file: UploadFile = File(None), image: UploadFile = File(N
     logger.info(f"[POST /detect-crack] Request {request_id} - Starting YOLO inference...")
     
     # Lambda read-only FS 대응: project와 name을 /tmp로 명시적 지정
-    results = model(
+    results = current_model(
         img, 
         save=False, 
         verbose=False,
